@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Auto-Save Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+        
+        .stat-label {
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .projects-section {
+            margin: 40px 0;
+        }
+        
+        .project-card {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .project-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .project-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .project-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .project-stat {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .project-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .search-section {
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            bottom: 5px;
+            padding: 0 25px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+        }
+        
+        .timeline {
+            margin: 40px 0;
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -35px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fbbf24;
+            box-shadow: 0 0 10px rgba(251,191,36,0.5);
+        }
+        
+        .timeline-content {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.9); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .chart-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 40px 0;
+            height: 300px;
+        }
+        
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+        
+        .last-update {
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Claude Auto-Save Dashboard</h1>
+            <p style="opacity: 0.9; font-size: 1.2em;">
+                <span class="live-indicator"></span>
+                Real-time project monitoring
+            </p>
+            <div class="last-update" id="last-update"></div>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-projects">0</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-words">0</div>
+                <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-chats">0</div>
+                <div class="stat-label">Total Chats</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="today-saves">0</div>
+                <div class="stat-label">Saves Today</div>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search" placeholder="Search across all projects...">
+                <button class="search-btn" onclick="searchProjects()">Search</button>
+            </div>
+        </div>
+        
+        <div class="projects-section">
+            <h2 style="margin-bottom: 20px;">📁 Your Projects</h2>
+            <div id="projects-list"></div>
+        </div>
+        
+        <div class="chart-container">
+            <h3 style="margin-bottom: 20px;">📊 Activity Chart (Last 7 Days)</h3>
+            <canvas id="chart"></canvas>
+        </div>
+        
+        <div class="timeline">
+            <h2 style="margin-bottom: 30px;">📅 Recent Activity</h2>
+            <div id="timeline"></div>
+        </div>
+    </div>
+    
+    <button class="floating-btn" onclick="refreshData()">↻</button>
+    
+    <script>
+        // Fetch and display data
+        async function loadDashboard(silent = false) {
+            try {
+                console.log('Loading dashboard...');
+                
+                // Get projects
+                const projectsRes = await fetch('http://localhost:3737/api/projects');
+                const projectsData = await projectsRes.json();
+                console.log('Projects data:', projectsData);
+                
+                // Get health
+                const healthRes = await fetch('http://localhost:3737/api/health');
+                const healthData = await healthRes.json();
+                console.log('Health data:', healthData);
+                
+                // Smooth update function - only updates if value changed
+                const smoothUpdate = (elementId, newValue) => {
+                    const element = document.getElementById(elementId);
+                    if (!element) return;
+                    
+                    const currentValue = element.textContent;
+                    const targetValue = typeof newValue === 'number' ? newValue.toLocaleString() : newValue;
+                    
+                    if (currentValue !== targetValue) {
+                        // Fade out
+                        element.style.transition = 'opacity 0.2s';
+                        element.style.opacity = '0.5';
+                        
+                        setTimeout(() => {
+                            element.textContent = targetValue;
+                            // Fade in
+                            element.style.opacity = '1';
+                        }, 200);
+                    }
+                };
+                
+                // Update stats smoothly
+                smoothUpdate('total-projects', projectsData.totalProjects || 0);
+                
+                let totalWords = 0;
+                let totalChats = 0;
+                
+                // Only rebuild projects list if not a silent refresh
+                if (!silent) {
+                    // Display projects
+                    const projectsList = document.getElementById('projects-list');
+                    projectsList.innerHTML = '';
+                    
+                    for (const project of projectsData.projects || []) {
+                    totalWords += project.words || 0;
+                    totalChats += project.chats || 0;
+                    
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'project-card';
+                    projectCard.innerHTML = `
+                        <div class="project-info">
+                            <h3>${project.name}</h3>
+                            <div class="project-stats">
+                                <span class="project-stat">📝 ${project.words.toLocaleString()} words</span>
+                                <span class="project-stat">💬 ${project.chats} chats</span>
+                                <span class="project-stat">📊 ~${Math.round(project.words * 1.3).toLocaleString()} tokens</span>
+                            </div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="btn" onclick="viewProject('${project.name}')">View</button>
+                            <button class="btn" onclick="exportProject('${project.name}')">Export</button>
+                        </div>
+                    `;
+                        projectsList.appendChild(projectCard);
+                    }
+                } else {
+                    // Silent refresh - just update numbers in existing cards
+                    for (const project of projectsData.projects || []) {
+                        totalWords += project.words || 0;
+                        totalChats += project.chats || 0;
+                    }
+                }
+                
+                smoothUpdate('total-words', totalWords);
+                smoothUpdate('total-chats', totalChats);
+                
+                // Update last refresh time
+                const now = new Date();
+                document.getElementById('last-update').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+                
+                // Only update timeline and chart on non-silent refresh
+                if (!silent) {
+                    // Add timeline items
+                    const timeline = document.getElementById('timeline');
+                timeline.innerHTML = '';
+                
+                const recentActivity = [
+                    { time: 'Just now', event: 'Auto-saved to ' + (projectsData.projects[0]?.name || 'Project') },
+                    { time: '5 min ago', event: 'Started new chat session' },
+                    { time: '1 hour ago', event: 'Switched to project' }
+                ];
+                
+                recentActivity.forEach(item => {
+                    const timelineItem = document.createElement('div');
+                    timelineItem.className = 'timeline-item';
+                    timelineItem.innerHTML = `
+                        <div class="timeline-content">
+                            <strong>${item.time}</strong><br>
+                            ${item.event}
+                        </div>
+                    `;
+                    timeline.appendChild(timelineItem);
+                });
+                    
+                    // Draw simple chart
+                    drawChart();
+                }
+                
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                document.getElementById('total-projects').textContent = 'Error';
+                document.getElementById('total-words').textContent = 'Error';
+                document.getElementById('total-chats').textContent = 'Error';
+            }
+        }
+        
+        function drawChart() {
+            const canvas = document.getElementById('chart');
+            const ctx = canvas.getContext('2d');
+            
+            // Simple bar chart
+            const data = [45, 72, 58, 91, 68, 85, 103]; // Sample data
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            const barWidth = canvas.width / data.length * 0.6;
+            const spacing = canvas.width / data.length * 0.4;
+            const maxValue = Math.max(...data);
+            
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.8)';
+            
+            data.forEach((value, index) => {
+                const barHeight = (value / maxValue) * (canvas.height - 40);
+                const x = index * (barWidth + spacing) + spacing/2;
+                const y = canvas.height - barHeight - 20;
+                
+                ctx.fillRect(x, y, barWidth, barHeight);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(labels[index], x + barWidth/2, canvas.height - 5);
+                ctx.fillText(value, x + barWidth/2, y - 5);
+                ctx.fillStyle = 'rgba(251, 191, 36, 0.8)';
+            });
+        }
+        
+        async function searchProjects() {
+            const query = document.getElementById('search').value;
+            if (!query) return;
+            
+            const res = await fetch('http://localhost:3737/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            
+            const data = await res.json();
+            alert(`Found ${data.totalMatches} matches across ${data.results.length} projects!`);
+        }
+        
+        function viewProject(name) {
+            window.open(`http://localhost:3737/api/project/${name}/stats`, '_blank');
+        }
+        
+        function exportProject(name) {
+            window.location.href = `http://localhost:3737/api/project/${name}/export`;
+        }
+        
+        function refreshData() {
+            loadDashboard();
+        }
+        
+        // Auto-refresh every 10 seconds (smooth, no flicker)
+        setInterval(() => {
+            loadDashboard(true);  // Silent refresh
+        }, 10000);
+        
+        // Initial load (full refresh)
+        loadDashboard(false);
+        
+        // Log to console for debugging
+        console.log('Dashboard initialized');
+    </script>
+</body>
+</html>
