@@ -41,15 +41,24 @@ class SmartSaveMenuBar(rumps.App):
     @rumps.clicked("🛑 Stop Auto-Save")
     def stop_everything(self, _):
         """Stop EVERYTHING - server, Claude, dashboard, Terminal"""
-        rumps.notification("Smart Save V9.0", "", "Stopping all processes...")
+        try:
+            rumps.notification("Smart Save V9.0", "", "Stopping all processes...")
+        except:
+            pass
         
         # Kill ALL Node processes (more aggressive)
-        subprocess.run(["killall", "node"], stderr=subprocess.DEVNULL)
-        subprocess.run(["pkill", "-9", "-f", "node"], stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(["killall", "node"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            subprocess.run(["pkill", "-9", "-f", "node"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        except:
+            pass
         
         # Force kill Claude Desktop
-        subprocess.run(["killall", "Claude"], stderr=subprocess.DEVNULL)
-        subprocess.run(["pkill", "-9", "-f", "Claude"], stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(["killall", "Claude"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            subprocess.run(["pkill", "-9", "-f", "Claude"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        except:
+            pass
         
         # Close dashboard AND Claude tabs in Chrome
         apple_script = '''
@@ -66,7 +75,10 @@ class SmartSaveMenuBar(rumps.App):
             end repeat
         end tell
         '''
-        subprocess.run(["osascript", "-e", apple_script], stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(["osascript", "-e", apple_script], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        except:
+            pass
         
         # Close Terminal windows
         apple_script_terminal = '''
@@ -81,24 +93,40 @@ class SmartSaveMenuBar(rumps.App):
             end repeat
         end tell
         '''
-        subprocess.run(["osascript", "-e", apple_script_terminal], stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(["osascript", "-e", apple_script_terminal], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        except:
+            pass
         
         time.sleep(1)
         self.check_status()
-        rumps.notification("Smart Save V9.0", "", "All processes stopped!")
+        try:
+            rumps.notification("Smart Save V9.0", "", "All processes stopped!")
+        except:
+            pass
         
     @rumps.clicked("▶️ Start Auto-Save")
     def start_automation(self, _):
         """Start the automation"""
-        rumps.notification("Smart Save V9.0", "", "Starting automation...")
+        try:
+            rumps.notification("Smart Save V9.0", "", "Starting automation...")
+        except:
+            pass
+        
         script_path = os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Smart Save/Claude_AutoSave_FINAL/START_FINAL_AUTOMATION.command")
         
         # Start the automation script
-        subprocess.Popen(["open", "-a", "Terminal", script_path])
+        try:
+            subprocess.Popen(["open", "-a", "Terminal", script_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except:
+            pass
         
         time.sleep(5)
         self.check_status()
-        rumps.notification("Smart Save V9.0", "", "Auto-Save started!")
+        try:
+            rumps.notification("Smart Save V9.0", "", "Auto-Save started!")
+        except:
+            pass
         
     @rumps.timer(10)
     def update_status(self, _):
