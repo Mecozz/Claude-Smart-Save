@@ -1,0 +1,33 @@
+{
+  "name": "claude-smart-save",
+  "version": "11.0.0",
+  "description": "Intelligent auto-save system for Claude Desktop with duplicate prevention and project organization",
+  "main": "claude-server-v5.js",
+  "scripts": {
+    "start": "node claude-server-v5.js",
+    "server": "node claude-server-v5.js",
+    "menubar": "python3 menubar.py",
+    "test": "curl http://localhost:3737/api/health",
+    "check-size": "find . -name '*.md' -size +900k -exec ls -lh {} \\;",
+    "version": "node -e \"console.log(require('./version-detector.js'))\""
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "keywords": [
+    "claude",
+    "autosave",
+    "backup",
+    "icloud",
+    "smart-save",
+    "no-duplicates"
+  ],
+  "author": "Darren Couturier",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mecozz/Claude-Smart-Save"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Projects Test</title>
+</head>
+<body>
+    <h2>Testing Projects API</h2>
+    <div id="results"></div>
+    
+    <script>
+        async function testProjectsAPI() {
+            try {
+                const response = await fetch('http://localhost:3737/api/projects');
+                const data = await response.json();
+                const projects = data.projects || data;
+                
+                console.log('API Response:', data);
+                console.log('Projects:', projects);
+                
+                if (projects && projects.length > 0) {
+                    const projectsHtml = projects.map(project => `
+                        <div style="border: 1px solid #ccc; padding: 10px; margin: 5px;">
+                            <strong>${project.name}</strong><br>
+                            ${project.files || project.chats || 0} files • ${(project.words || project.totalWords || 0).toLocaleString()} words
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('results').innerHTML = `
+                        <h3>Found ${projects.length} projects:</h3>
+                        ${projectsHtml}
+                    `;
+                } else {
+                    document.getElementById('results').innerHTML = '<p>No projects found</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Test on page load
+        testProjectsAPI();
+    </script>
+</body>
+</html>

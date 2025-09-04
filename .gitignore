@@ -1,0 +1,62 @@
+# Smart Save - Git Ignore File
+# This ensures your personal conversations are NEVER uploaded to GitHub
+
+# Ignore ALL conversation files
+Claude_Conversations/
+**/Claude_Conversations/**
+Claude_Conversations/Projects/**
+Claude_Conversations/Daily/**
+Claude_Conversations/Archived/**
+Claude_Conversations/Backups/**
+
+# Ignore any markdown files that might be conversations
+*.md.backup
+*backup*.md
+*conversation*.md
+*chat*.md
+
+# Ignore server logs that might contain personal data
+server.log
+*.log
+logs/
+
+# Ignore personal configuration
+.processed-conversations.json
+config.json
+
+# Ignore node modules
+node_modules/
+package-lock.json
+
+# System files
+.DS_Store
+Thumbs.db
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Test files that might have personal data
+test-*.md
+debug-*.md
+
+# Keep the folder structure but not the content
+!Claude_Conversations/.gitkeep
+!Claude_Conversations/Projects/.gitkeep
+!Claude_Conversations/Daily/.gitkeep
+!Claude_Conversations/Archived/.gitkeep
+!Claude_Conversations/Backups/.gitkeep

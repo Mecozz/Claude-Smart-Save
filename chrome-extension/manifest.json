@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Smart Save Auto-Injector",
+  "version": "10.0.5",
+  "description": "Automatically injects Smart Save into Claude.ai",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "http://localhost:3737/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["inject.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  }
+}

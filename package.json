@@ -1,0 +1,42 @@
+{
+  "name": "smart-save-claude",
+  "version": "11.0.0",
+  "description": "Intelligent auto-save system for Claude Desktop App and claude.ai that continuously saves conversations with project organization",
+  "main": "claude-server-v5.js",
+  "scripts": {
+    "start": "node Claude_AutoSave_FINAL/claude-server-v5.js",
+    "install-deps": "npm install",
+    "setup": "npm install && echo 'Setup complete! Run npm start to begin.'",
+    "test": "node diagnostic.js",
+    "clean": "rm -rf node_modules && npm install"
+  },
+  "keywords": [
+    "claude",
+    "autosave",
+    "ai",
+    "conversation",
+    "backup",
+    "anthropic"
+  ],
+  "author": "Smart Save Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "fs-extra": "^11.1.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/smart-save-claude.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/smart-save-claude/issues"
+  },
+  "homepage": "https://github.com/yourusername/smart-save-claude#readme"
+}

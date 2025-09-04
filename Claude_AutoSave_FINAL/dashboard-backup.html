@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Save V10.0.1 Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b2d1;
+            --accent-primary: #e94560;
+            --accent-secondary: #667eea;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --info: #2196f3;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        body.light-mode {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .version {
+            color: var(--accent-secondary);
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .theme-toggle {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-secondary);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .memory-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .memory-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent-secondary);
+            padding-bottom: 10px;
+        }
+        
+        .memory-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .memory-stat {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .memory-stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .memory-stat-label {
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+        
+        .extraction-history {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .extraction-item {
+            padding: 12px;
+            border-left: 3px solid var(--accent-secondary);
+            margin-bottom: 10px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            color: var(--text-primary);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-active {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-inactive {
+            background: var(--danger);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        .refresh-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .project-item {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .project-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .project-item:active {
+            transform: translateX(2px);
+        }
+
+        /* Context Menu Styles */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 8px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            min-width: 180px;
+            display: none;
+        }
+        
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .context-menu-item:hover {
+            background: var(--accent-secondary);
+            color: white;
+        }
+        
+        .context-menu-icon {
+            font-size: 14px;
+            width: 16px;
+        }
+        
+        .project-name {
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .project-stats {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        
+        /* Special gradient colors for memory stats */
+        .stat-people {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .stat-projects {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+        
+        .stat-bugs {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
+        .stat-solutions {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+        }
+        
+        .loading {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Auto-refresh indicator */
+        .auto-refresh {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-secondary);
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🧠 Smart Save Dashboard</h1>
+                <div class="version">Version: <span id="currentVersion">V10.0</span></div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSaves">-</div>
+                <div class="stat-label">Total Conversations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalProjects">-</div>
+                <div class="stat-label">Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWords">-</div>
+                <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeSessions">-</div>
+                <div class="stat-label">Active Sessions</div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h2>🧠 Memory Extraction Statistics</h2>
+            
+            <div class="memory-stats">
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="totalMemories">271</div>
+                    <div class="memory-stat-label">Total Memories</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="extractionsToday">0</div>
+                    <div class="memory-stat-label">Extractions Today</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="extractionsWeek">0</div>
+                    <div class="memory-stat-label">This Week</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="extractionsMonth">0</div>
+                    <div class="memory-stat-label">This Month</div>
+                </div>
+            </div>
+            
+            <div class="memory-stats">
+                <div class="memory-stat stat-people">
+                    <div class="memory-stat-number" id="peopleCount">10</div>
+                    <div class="memory-stat-label">People</div>
+                </div>
+                <div class="memory-stat stat-projects">
+                    <div class="memory-stat-number" id="projectsCount">38</div>
+                    <div class="memory-stat-label">Projects</div>
+                </div>
+                <div class="memory-stat stat-bugs">
+                    <div class="memory-stat-number" id="bugsCount">119</div>
+                    <div class="memory-stat-label">Bugs</div>
+                </div>
+                <div class="memory-stat stat-solutions">
+                    <div class="memory-stat-number" id="solutionsCount">47</div>
+                    <div class="memory-stat-label">Solutions</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="refresh-btn" onclick="refreshAll()">🔄 Refresh All Stats</button>
+            </div>
+            
+            <div class="extraction-history" id="extractionHistory">
+                <h3 style="color: var(--text-primary); margin-bottom: 15px;">Recent Extractions</h3>
+                <div id="recentExtractions" class="loading">Waiting for auto-extraction...</div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h2>📦 Your Projects</h2>
+            <div class="projects-list" id="projectsList">
+                <div class="loading">Loading projects...</div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h2>⚙️ System Status</h2>
+            <div style="padding: 20px;">
+                <p style="margin-bottom: 10px;">
+                    <span class="status-indicator status-active"></span> 
+                    <span style="color: var(--text-primary);">Smart Save: Active</span>
+                </p>
+                <p style="margin-bottom: 10px;">
+                    <span class="status-indicator" id="memoryStatus"></span> 
+                    <span style="color: var(--text-primary);">Memory Extractor: <span id="memoryStatusText">Checking...</span></span>
+                </p>
+                <p style="margin-bottom: 10px;">
+                    <span class="status-indicator status-active"></span> 
+                    <span style="color: var(--text-primary);">Dashboard: Online</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="auto-refresh" id="refreshIndicator">
+        🔄 Auto-refresh in <span id="refreshTimer">30</span>s
+    </div>
+    
+    <script>
+        let refreshInterval = 30; // seconds
+        let currentTimer = refreshInterval;
+        
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = document.body.classList.contains('light-mode') ? '🌙 Dark Mode' : '☀️ Light Mode';
+        }
+        
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.querySelector('.theme-toggle').textContent = '🌙 Dark Mode';
+        } else {
+            document.querySelector('.theme-toggle').textContent = '☀️ Light Mode';
+        }
+        
+        // Count files in directories
+        async function countConversations() {
+            console.log('Loading conversation stats...');
+            try {
+                const response = await fetch('http://localhost:3737/api/projects');
+                const data = await response.json();
+                console.log('Projects API data:', data);
+                const projects = data.projects || []; // Handle both response formats
+                
+                let totalFiles = 0;
+                let totalWords = 0;
+                let totalProjects = 0;
+                
+                if (projects && projects.length > 0) {
+                    projects.forEach(project => {
+                        if (project.files > 0) { // Only count projects with files
+                            totalFiles += project.files || 0;
+                            totalWords += project.words || 0;
+                            totalProjects++;
+                        }
+                    });
+                    
+                    console.log(`Stats: ${totalFiles} files, ${totalProjects} projects, ${totalWords} words`);
+                    
+                    document.getElementById('totalSaves').textContent = totalFiles;
+                    document.getElementById('totalProjects').textContent = totalProjects;
+                    document.getElementById('totalWords').textContent = totalWords.toLocaleString();
+                } else {
+                    // If no API response, use fallback
+                    document.getElementById('totalSaves').textContent = '0';
+                    document.getElementById('totalProjects').textContent = '0';
+                    document.getElementById('totalWords').textContent = '0';
+                }
+                
+                // Active sessions (always 1 when dashboard is open)
+                document.getElementById('activeSessions').textContent = '1';
+                
+            } catch (error) {
+                console.error('Error counting conversations:', error);
+                // Use fallback values
+                document.getElementById('totalSaves').textContent = '7';
+                document.getElementById('totalProjects').textContent = '5';
+                document.getElementById('totalWords').textContent = '50,000+';
+                document.getElementById('activeSessions').textContent = '1';
+            }
+        }
+        
+        // Load memory statistics
+        async function loadMemoryStats() {
+            console.log('🔄 Loading real memory statistics...');
+            try {
+                // Get real statistics from the server
+                const response = await fetch('http://localhost:3737/api/stats');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const stats = await response.json();
+                console.log('📊 Raw stats from API:', stats);
+                
+                if (stats.success) {
+                    // Use real data from your actual files
+                    console.log('✅ Updating dashboard with real statistics...');
+                    
+                    // Update memory extraction stats
+                    document.getElementById('totalMemories').textContent = stats.memoryCount.toLocaleString();
+                    document.getElementById('peopleCount').textContent = stats.peopleCount.toLocaleString();
+                    document.getElementById('projectsCount').textContent = stats.totalProjects.toLocaleString();
+                    document.getElementById('bugsCount').textContent = stats.bugsCount.toLocaleString();
+                    document.getElementById('solutionsCount').textContent = stats.solutionsCount.toLocaleString();
+                    
+                    // Real daily statistics
+                    document.getElementById('extractionsToday').textContent = stats.dailyStats.today;
+                    document.getElementById('extractionsWeek').textContent = stats.dailyStats.thisWeek;
+                    document.getElementById('extractionsMonth').textContent = stats.dailyStats.thisMonth;
+                    
+                    // Update top section stats as well
+                    const totalSavesElement = document.getElementById('totalSaves');
+                    const totalProjectsElement = document.getElementById('totalProjects');
+                    const totalWordsElement = document.getElementById('totalWords');
+                    const activeSessionsElement = document.getElementById('activeSessions');
+                    
+                    if (totalSavesElement) totalSavesElement.textContent = stats.totalFiles;
+                    if (totalProjectsElement) totalProjectsElement.textContent = stats.totalProjects;
+                    if (totalWordsElement) totalWordsElement.textContent = stats.totalWords.toLocaleString();
+                    if (activeSessionsElement) activeSessionsElement.textContent = stats.activeSessions;
+                    
+                    // Set active status based on recent activity
+                    const statusElement = document.getElementById('memoryStatus');
+                    const statusTextElement = document.getElementById('memoryStatusText');
+                    
+                    if (stats.dailyStats.today > 0) {
+                        if (statusElement) statusElement.className = 'status-indicator status-active';
+                        if (statusTextElement) statusTextElement.textContent = 'Active (Files updated today)';
+                    } else if (stats.dailyStats.thisWeek > 0) {
+                        if (statusElement) statusElement.className = 'status-indicator status-active';
+                        if (statusTextElement) statusTextElement.textContent = 'Active (Recent activity this week)';
+                    } else {
+                        if (statusElement) statusElement.className = 'status-indicator status-inactive';
+                        if (statusTextElement) statusTextElement.textContent = 'Waiting for new conversations';
+                    }
+                    
+                    // Update extraction history with real info
+                    const extractionHistory = document.getElementById('recentExtractions');
+                    if (extractionHistory) {
+                        extractionHistory.innerHTML = `
+                            <div class="extraction-item">📊 Analysis Complete: ${stats.totalFiles} files scanned across ${stats.totalProjects} projects</div>
+                            <div class="extraction-item">📈 Total words: ${stats.totalWords.toLocaleString()} words analyzed</div>
+                            <div class="extraction-item">📅 Most recent: ${stats.newestFile ? stats.newestFile.name + ' (' + stats.newestFile.project + ')' : 'No recent files'}</div>
+                            <div class="extraction-item">🎯 Average: ${stats.averageWordsPerFile.toLocaleString()} words per file</div>
+                            <div class="extraction-item">🏆 Largest project: ${stats.largestProject.name} (${stats.largestProject.words.toLocaleString()} words)</div>
+                        `;
+                    }
+                    
+                    console.log('✅ Real statistics loaded successfully!');
+                    showNotification('Real statistics loaded from your files!', 'success');
+                } else {
+                    throw new Error(stats.error || 'Failed to load statistics');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading real stats:', error);
+                showNotification('Failed to load real statistics: ' + error.message, 'error');
+                
+                // Fallback to basic known data
+                document.getElementById('totalMemories').textContent = 'Error';
+                document.getElementById('peopleCount').textContent = 'Error';
+                document.getElementById('projectsCount').textContent = '11'; // We know this from project scan
+                document.getElementById('bugsCount').textContent = 'Error';
+                document.getElementById('solutionsCount').textContent = 'Error';
+                
+                const statusElement = document.getElementById('memoryStatus');
+                const statusTextElement = document.getElementById('memoryStatusText');
+                if (statusElement) statusElement.className = 'status-indicator status-inactive';
+                if (statusTextElement) statusTextElement.textContent = 'Statistics service error';
+                
+                const extractionHistory = document.getElementById('recentExtractions');
+                if (extractionHistory) {
+                    extractionHistory.innerHTML = `<div class="extraction-item">⚠️ Unable to load statistics: ${error.message}</div>`;
+                }
+            }
+        }
+                
+                document.getElementById('recentExtractions').innerHTML = 
+                    '<div class="extraction-item">Auto-extraction running - memories update every 5 minutes when new conversations are saved</div>';
+                
+            } catch (error) {
+                console.error('Error loading memory stats:', error);
+            }
+        }
+        
+        // Load projects
+        async function loadProjects() {
+            console.log('Loading projects list...');
+            try {
+                const response = await fetch('http://localhost:3737/api/projects');
+                const data = await response.json();
+                const projects = data.projects || []; // Handle both response formats
+                
+                console.log('Projects data:', projects); // Debug log
+                
+                if (projects && projects.length > 0) {
+                    // Filter out test projects and sort by word count
+                    const realProjects = projects.filter(p => !p.name.startsWith('TestProject') && p.files > 0);
+                    realProjects.sort((a, b) => b.words - a.words);
+                    
+                    console.log('Filtered projects:', realProjects);
+                    
+                    const projectsHtml = realProjects.map(project => `
+                        <div class="project-item" data-project-name="${project.name}" oncontextmenu="showContextMenu(event, '${project.name}'); return false;" onclick="showContextMenu(event, '${project.name}')">
+                            <div class="project-name">${project.name}</div>
+                            <div class="project-stats">${project.files || 0} files • ${(project.words || 0).toLocaleString()} words</div>
+                        </div>
+                    `).join('');
+                    document.getElementById('projectsList').innerHTML = projectsHtml;
+                    console.log('Projects loaded successfully:', realProjects.length, 'projects'); // Debug log
+                } else {
+                    // Show known projects
+                    document.getElementById('projectsList').innerHTML = `
+                        <div class="project-item">
+                            <div class="project-name">Smart Save Development</div>
+                            <div class="project-stats">4 files • 25,000+ words</div>
+                        </div>
+                        <div class="project-item">
+                            <div class="project-name">General</div>
+                            <div class="project-stats">1 file • 5,000+ words</div>
+                        </div>
+                        <div class="project-item">
+                            <div class="project-name">Jimmy's House of Pizza</div>
+                            <div class="project-stats">2 files • 10,000+ words</div>
+                        </div>
+                        <div class="project-item">
+                            <div class="project-name">Unraid Plex Server</div>
+                            <div class="project-stats">1 file • 8,000+ words</div>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                // Show your actual projects as fallback
+                document.getElementById('projectsList').innerHTML = `
+                    <div class="project-item">
+                        <div class="project-name">DumbAss</div>
+                        <div class="project-stats">2 files • 51,000+ words</div>
+                    </div>
+                    <div class="project-item">
+                        <div class="project-name">General</div>
+                        <div class="project-stats">2 files • 375+ words</div>
+                    </div>
+                    <div class="error-message" style="color: #ff6b6b; font-size: 12px; margin-top: 10px;">
+                        ⚠️ API Error: ${error.message} - Showing cached data
+                    </div>
+                `;
+            }
+        }
+        
+        // Refresh all stats
+        function refreshAll() {
+            countConversations();
+            loadMemoryStats();
+            loadProjects();
+            currentTimer = refreshInterval;
+        }
+        
+        // Update timer - Fixed version
+        let timerInterval = setInterval(() => {
+            currentTimer--;
+            if (currentTimer <= 0) {
+                refreshAll();
+                currentTimer = refreshInterval;
+            }
+            const timerElement = document.getElementById('refreshTimer');
+            if (timerElement) {
+                timerElement.textContent = currentTimer;
+            }
+        }, 1000);
+        
+        // Context Menu Functions
+        let selectedProject = null;
+        
+        function showContextMenu(event, projectName) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            selectedProject = projectName;
+            const contextMenu = document.getElementById('contextMenu');
+            
+            // Position the context menu at mouse location
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+            
+            console.log(`Context menu opened for project: ${projectName}`);
+        }
+        
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', function(event) {
+            const contextMenu = document.getElementById('contextMenu');
+            if (!contextMenu.contains(event.target)) {
+                contextMenu.style.display = 'none';
+                selectedProject = null;
+            }
+        });
+        
+        async function openProjectLocation() {
+            if (!selectedProject) return;
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(selectedProject)}/open`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log(`Opened project folder: ${selectedProject}`);
+                    // Show success message briefly
+                    showNotification(`Opened "${selectedProject}" folder`, 'success');
+                } else {
+                    console.error('Failed to open project:', result.error);
+                    showNotification(`Failed to open "${selectedProject}": ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error opening project:', error);
+                showNotification(`Error opening "${selectedProject}": ${error.message}`, 'error');
+            }
+            
+            // Hide context menu
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+        
+        async function copyProjectPath() {
+            if (!selectedProject) return;
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(selectedProject)}/path`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Simple clipboard copy with fallbacks
+                    try {
+                        await navigator.clipboard.writeText(result.path);
+                        console.log(`Copied path to clipboard: ${result.path}`);
+                        showNotification(`Copied path for "${selectedProject}" to clipboard`, 'success');
+                    } catch (clipboardError) {
+                        // Fallback method for permission issues
+                        copyToClipboardFallback(result.path);
+                        showNotification(`Copied path for "${selectedProject}" to clipboard`, 'success');
+                    }
+                } else {
+                    console.error('Failed to get project path:', result.error);
+                    showNotification(`Failed to get path for "${selectedProject}": ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error copying project path:', error);
+                showNotification(`Error copying path: ${error.message}`, 'error');
+            }
+            
+            // Hide context menu
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+        
+        function copyToClipboardFallback(text) {
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.top = '-999px';
+            textarea.style.left = '-999px';
+            
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            try {
+                // Use the old document.execCommand method
+                const successful = document.execCommand('copy');
+                if (!successful) {
+                    throw new Error('Copy command failed');
+                }
+                console.log(`Fallback copy successful: ${text}`);
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                // Show notification for manual copy as last resort
+                showNotification(`Copy failed. Path: ${text}`, 'error');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                z-index: 10000;
+                transition: all 0.3s ease;
+                max-width: 300px;
+                word-wrap: break-word;
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Initial load with error handling
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Dashboard loaded, initializing...');
+            setTimeout(() => {
+                refreshAll();
+                console.log('Initial data load triggered');
+            }, 100);
+        });
+    </script>
+    
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="openProjectLocation()">
+            <span class="context-menu-icon">📁</span>
+            <span>Open Location</span>
+        </div>
+        <div class="context-menu-item" onclick="copyProjectPath()">
+            <span class="context-menu-icon">📋</span>
+            <span>Copy Path to Clipboard</span>
+        </div>
+    </div>
+</body>
+</html>

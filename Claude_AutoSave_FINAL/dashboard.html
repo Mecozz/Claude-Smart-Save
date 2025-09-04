@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Save V10.0.5 Dashboard - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b2d1;
+            --accent-primary: #e94560;
+            --accent-secondary: #667eea;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --info: #2196f3;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .version {
+            color: var(--accent-secondary);
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-secondary);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .memory-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .memory-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent-secondary);
+            padding-bottom: 10px;
+        }
+        
+        .memory-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .memory-stat {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .memory-stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .memory-stat-label {
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+        
+        /* Enhanced Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .project-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-secondary);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gradient);
+        }
+        
+        /* Quick action buttons */
+        .quick-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .project-card:hover .quick-actions {
+            opacity: 1;
+        }
+        
+        .quick-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-secondary);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+        
+        .quick-action-btn:hover {
+            background: var(--accent-secondary);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .quick-action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .project-name {
+            color: var(--text-primary);
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-right: 80px; /* Space for buttons */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .project-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        
+        .stat-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .token-count {
+            color: var(--accent-secondary);
+            font-weight: bold;
+        }
+        
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-secondary);
+            border-radius: 8px;
+            padding: 8px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: none;
+            min-width: 200px;
+        }
+        
+        .context-menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .context-menu-item:hover {
+            background: var(--accent-secondary);
+            color: white;
+        }
+        
+        .context-menu-icon {
+            font-size: 16px;
+            width: 20px;
+        }
+        
+        /* Empty state for projects */
+        .empty-project {
+            background: rgba(255, 152, 0, 0.1);
+            border: 2px dashed var(--warning);
+            opacity: 0.5;
+        }
+        
+        .empty-project .project-name {
+            color: var(--warning);
+        }
+        
+        /* Auto-refresh indicator */
+        .refresh-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--accent-secondary);
+            color: var(--text-primary);
+            font-size: 0.9em;
+        }
+        
+        .refresh-timer {
+            color: var(--accent-secondary);
+            font-weight: bold;
+        }
+        
+        /* Notification styles */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🚀 Smart Save Dashboard</h1>
+                <div class="version">Version: V10.0.5</div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSaves">-</div>
+                <div class="stat-label">Total Conversations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalProjects">-</div>
+                <div class="stat-label">Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWords">-</div>
+                <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalTokens">-</div>
+                <div class="stat-label">Total Tokens (Est.)</div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h2>🧠 Memory Extraction Statistics</h2>
+            <div class="memory-stats">
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="totalMemories">-</div>
+                    <div class="memory-stat-label">Total Memories</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="peopleCount">-</div>
+                    <div class="memory-stat-label">People</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="bugsCount">-</div>
+                    <div class="memory-stat-label">Bugs</div>
+                </div>
+                <div class="memory-stat">
+                    <div class="memory-stat-number" id="solutionsCount">-</div>
+                    <div class="memory-stat-label">Solutions</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h2>📦 Your Projects</h2>
+            <div class="projects-grid" id="projectsGrid">
+                <div class="project-card">
+                    <div class="project-name">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="openProjectFolder()">
+            <span class="context-menu-icon">📁</span>
+            <span>Open Folder</span>
+        </div>
+        <div class="context-menu-item" onclick="copyProjectPath()">
+            <span class="context-menu-icon">📋</span>
+            <span>Copy Path to Clipboard</span>
+        </div>
+    </div>
+    
+    <!-- Auto-refresh indicator -->
+    <div class="refresh-indicator">
+        🔄 Auto-refresh in <span class="refresh-timer" id="refreshTimer">30</span>s
+    </div>
+    
+    <script>
+        let selectedProject = null;
+        let refreshInterval = 30;
+        let currentTimer = refreshInterval;
+        
+        // Estimate tokens (roughly 1 token per 4 characters or 0.75 tokens per word)
+        function estimateTokens(words) {
+            return Math.round(words * 1.33);
+        }
+        
+        // Format large numbers
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Remove any existing notification
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                max-width: 400px;
+                word-break: break-all;
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // Direct copy function (one-click)
+        async function quickCopy(event, projectName) {
+            event.stopPropagation();
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(projectName)}/path`);
+                const result = await response.json();
+                
+                if (result.success && result.path) {
+                    // Try direct clipboard write first
+                    try {
+                        await navigator.clipboard.writeText(result.path);
+                        showNotification(`✅ Copied: ${projectName}`, 'success');
+                    } catch {
+                        // Fallback if clipboard API fails
+                        const input = document.createElement('input');
+                        input.value = result.path;
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
+                        showNotification(`✅ Copied: ${projectName}`, 'success');
+                    }
+                }
+            } catch (error) {
+                console.error('Quick copy error:', error);
+                showNotification('Copy failed', 'error');
+            }
+        }
+        
+        // Quick open folder
+        async function quickOpen(event, projectName) {
+            event.stopPropagation();
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(projectName)}/open`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(`📁 Opened: ${projectName}`, 'success');
+                }
+            } catch (error) {
+                console.error('Quick open error:', error);
+                showNotification('Failed to open folder', 'error');
+            }
+        }
+        
+        // Show context menu (keep for right-click)
+        function showContextMenu(event, projectName) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            selectedProject = projectName;
+            const contextMenu = document.getElementById('contextMenu');
+            
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+        }
+        
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', function() {
+            document.getElementById('contextMenu').style.display = 'none';
+        });
+        
+        // Open project folder
+        async function openProjectFolder() {
+            if (!selectedProject) return;
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(selectedProject)}/open`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log(`✅ Opened folder: ${selectedProject}`);
+                    showNotification(`Opened: ${selectedProject}`, 'success');
+                } else {
+                    console.error('Failed to open folder:', result.error);
+                    showNotification('Failed to open folder', 'error');
+                }
+            } catch (error) {
+                console.error('Error opening folder:', error);
+                showNotification('Error opening folder', 'error');
+            }
+            
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+        
+        // Copy project path to clipboard with proper fallback
+        async function copyProjectPath() {
+            if (!selectedProject) return;
+            
+            try {
+                const response = await fetch(`/api/project/${encodeURIComponent(selectedProject)}/path`);
+                const result = await response.json();
+                
+                console.log('Copy path response:', result); // Debug log
+                
+                if (result.success && result.path) {
+                    const pathToCopy = result.path;
+                    console.log('Attempting to copy:', pathToCopy);
+                    
+                    // Always use the fallback method which is more reliable
+                    copyWithFallback(pathToCopy);
+                    
+                } else {
+                    console.error('No path in response:', result);
+                    showNotification(`Project not found: ${selectedProject}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error getting path:', error);
+                showNotification('Error getting project path', 'error');
+            }
+            
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+        
+        // Fallback clipboard copy method - more reliable version
+        function copyWithFallback(text) {
+            // Create a textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '0';
+            textarea.style.left = '0';
+            textarea.style.width = '2em';
+            textarea.style.height = '2em';
+            textarea.style.padding = '0';
+            textarea.style.border = 'none';
+            textarea.style.outline = 'none';
+            textarea.style.boxShadow = 'none';
+            textarea.style.background = 'transparent';
+            
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+                if (success) {
+                    console.log(`✅ Copied path: ${text}`);
+                    showNotification(`Copied: ${text}`, 'success');
+                } else {
+                    throw new Error('execCommand returned false');
+                }
+            } catch (err) {
+                console.error('❌ Copy failed:', err);
+                // Try one more method - prompt user to copy manually
+                prompt('Copy this path manually (Ctrl+C/Cmd+C):', text);
+                showNotification('Please copy from the prompt', 'info');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+            
+            return success;
+        }
+        
+        // Load dashboard data
+        async function loadDashboard() {
+            console.log('Loading dashboard data...');
+            
+            try {
+                // Load projects
+                const projectsResponse = await fetch('/api/projects');
+                const projectsData = await projectsResponse.json();
+                
+                if (projectsData.projects) {
+                    // Include ALL projects, even empty ones
+                    const allProjects = projectsData.projects;
+                    
+                    // Calculate totals (only from projects with files)
+                    let totalFiles = 0;
+                    let totalWords = 0;
+                    let totalTokens = 0;
+                    let activeProjects = 0;
+                    
+                    allProjects.forEach(p => {
+                        if (p.files > 0) {
+                            totalFiles += p.files;
+                            totalWords += p.words;
+                            totalTokens += estimateTokens(p.words);
+                            activeProjects++;
+                        }
+                    });
+                    
+                    // Update top stats
+                    document.getElementById('totalSaves').textContent = totalFiles;
+                    document.getElementById('totalProjects').textContent = activeProjects;
+                    document.getElementById('totalWords').textContent = formatNumber(totalWords);
+                    document.getElementById('totalTokens').textContent = formatNumber(totalTokens);
+                    
+                    // Sort projects: non-empty first (by word count), then empty ones
+                    allProjects.sort((a, b) => {
+                        if (a.files === 0 && b.files === 0) return 0;
+                        if (a.files === 0) return 1;
+                        if (b.files === 0) return -1;
+                        return b.words - a.words;
+                    });
+                    
+                    // Create project cards with quick action buttons
+                    const projectsHtml = allProjects.map(project => {
+                        const tokens = estimateTokens(project.words);
+                        const isEmpty = project.files === 0;
+                        
+                        return `
+                            <div class="project-card ${isEmpty ? 'empty-project' : ''}" 
+                                 oncontextmenu="showContextMenu(event, '${project.name}')"
+                                 title="${isEmpty ? 'Empty project folder' : 'Right-click for more options'}">
+                                <div class="quick-actions">
+                                    <div class="quick-action-btn" onclick="quickCopy(event, '${project.name}')" title="Copy path">📋</div>
+                                    <div class="quick-action-btn" onclick="quickOpen(event, '${project.name}')" title="Open folder">📁</div>
+                                </div>
+                                <div class="project-name">${project.name}</div>
+                                <div class="project-stats">
+                                    <div class="stat-row">
+                                        <span>Files:</span>
+                                        <span class="stat-value">${project.files}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Words:</span>
+                                        <span class="stat-value">${formatNumber(project.words)}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Tokens:</span>
+                                        <span class="token-count">${formatNumber(tokens)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('projectsGrid').innerHTML = projectsHtml;
+                }
+                
+                // Load memory stats
+                const statsResponse = await fetch('/api/stats');
+                const statsData = await statsResponse.json();
+                
+                if (statsData.success) {
+                    document.getElementById('totalMemories').textContent = formatNumber(statsData.memoryCount);
+                    document.getElementById('peopleCount').textContent = statsData.peopleCount;
+                    document.getElementById('bugsCount').textContent = formatNumber(statsData.bugsCount);
+                    document.getElementById('solutionsCount').textContent = formatNumber(statsData.solutionsCount);
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Timer countdown
+        setInterval(() => {
+            currentTimer--;
+            if (currentTimer <= 0) {
+                loadDashboard();
+                currentTimer = refreshInterval;
+            }
+            document.getElementById('refreshTimer').textContent = currentTimer;
+        }, 1000);
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Press 'R' to refresh
+            if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+                loadDashboard();
+                currentTimer = refreshInterval;
+                showNotification('🔄 Dashboard refreshed', 'info');
+            }
+            
+            // Press 'Escape' to close context menu
+            if (e.key === 'Escape') {
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

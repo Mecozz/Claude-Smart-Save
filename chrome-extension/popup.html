@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Save Status</title>
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        h1 {
+            font-size: 18px;
+            margin: 0 0 15px 0;
+        }
+        .status {
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .active { color: #4ade80; }
+        .inactive { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>📁 Smart Save v10.0.5</h1>
+    <div class="status">
+        <div id="server-status">Checking server...</div>
+    </div>
+    <div class="status">
+        <p>The extension automatically saves your Claude conversations to your local disk.</p>
+        <p>Server must be running on port 3737.</p>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

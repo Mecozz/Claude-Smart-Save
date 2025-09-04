@@ -1,0 +1,237 @@
+#!/bin/bash
+
+# ============================================
+# SMART SAVE V10.0.4 - SAFE PROCESS MANAGEMENT
+# ============================================
+# Uses PID tracking for clean process management
+# ============================================
+
+clear
+
+echo ""
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║   🚀 SMART SAVE V10.0.4 - STARTING EVERYTHING        ║"
+echo "╚═══════════════════════════════════════════════════════╝"
+echo ""
+
+cd "$(dirname "$0")"
+
+# PID files for tracking
+PID_DIR="$HOME/.smart_save_pids"
+mkdir -p "$PID_DIR"
+
+# Clean up old Smart Save processes only (using PID files)
+echo "🔄 Cleaning up old Smart Save processes..."
+
+# Kill previous server if PID file exists
+if [ -f "$PID_DIR/server.pid" ]; then
+    OLD_PID=$(cat "$PID_DIR/server.pid")
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+        echo "   Stopping old server (PID: $OLD_PID)"
+        kill "$OLD_PID" 2>/dev/null
+    fi
+    rm "$PID_DIR/server.pid"
+fi
+
+# Kill previous menubar if PID file exists
+if [ -f "$PID_DIR/menubar.pid" ]; then
+    OLD_PID=$(cat "$PID_DIR/menubar.pid")
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+        echo "   Stopping old menubar (PID: $OLD_PID)"
+        kill "$OLD_PID" 2>/dev/null
+    fi
+    rm "$PID_DIR/menubar.pid"
+fi
+
+# Kill processes by port (more targeted than killall)
+lsof -ti:3737 | xargs kill -9 2>/dev/null
+
+# Kill specific Smart Save processes only
+pkill -f "claude-server-v5.js" 2>/dev/null
+pkill -f "menubar.py.*Smart Save" 2>/dev/null
+
+sleep 1
+
+# Start server
+echo "🚀 Starting save server..."
+node claude-server-v5.js &
+SERVER_PID=$!
+echo "$SERVER_PID" > "$PID_DIR/server.pid"
+echo "✅ Server running (PID: $SERVER_PID)"
+
+sleep 2
+
+# Start menu bar
+echo "📊 Starting menu bar..."
+python3 menubar.py &
+MENUBAR_PID=$!
+echo "$MENUBAR_PID" > "$PID_DIR/menubar.pid"
+echo "✅ Menu bar running (PID: $MENUBAR_PID) - Look for SS icon"
+
+sleep 1
+
+# Start Claude in debug mode
+echo "🖥️  Starting Claude Desktop..."
+/Applications/Claude.app/Contents/MacOS/Claude --remote-debugging-port=9222 &
+CLAUDE_PID=$!
+echo "$CLAUDE_PID" > "$PID_DIR/claude.pid"
+echo "✅ Claude running (PID: $CLAUDE_PID)"
+
+sleep 3
+
+# Open Chrome inspect page
+echo "🌐 Opening Chrome DevTools..."
+open -a 'Google Chrome' 'chrome://inspect/#devices'
+
+echo "⏳ Waiting for page to load..."
+sleep 6
+
+# Read the script file content and copy to clipboard
+SCRIPT_CONTENT=$(cat "claude-desktop-MAIN.js")
+echo "$SCRIPT_CONTENT" | pbcopy
+
+echo "🤖 Auto-clicking inspect fallback and injecting..."
+
+# Use search method for finding inspect link
+osascript << 'EOF'
+tell application "Google Chrome"
+    activate
+end tell
+
+tell application "System Events"
+    tell process "Google Chrome"
+        delay 2
+        
+        -- Step 1: Search for "inspect fallback" using Cmd+F
+        keystroke "f" using {command down}
+        delay 0.5
+        
+        -- Type the search term
+        keystroke "inspect fallback"
+        delay 0.5
+        
+        -- Close search box
+        key code 53 -- Escape
+        delay 0.5
+        
+        -- Press Enter to click the highlighted link
+        keystroke return
+        
+        display notification "Opened DevTools" with title "✅ Step 1"
+        
+        -- Step 2: Wait for DevTools to open
+        delay 4
+        
+        -- Step 3: Switch to Console tab (if needed)
+        keystroke "`" using {command down, option down}
+        delay 1
+        
+        -- Step 4: Clear console
+        keystroke "k" using {command down}
+        delay 0.5
+        
+        -- Step 5: Paste the script (already in clipboard)
+        keystroke "v" using {command down}
+        delay 1
+        keystroke return
+        
+        delay 3
+        
+        display notification "Auto-Save is now active!" with title "✅ Success!" subtitle "V10.0.4 Safe Process Management"
+        
+        -- Step 6: Close/minimize DevTools
+        delay 1
+        keystroke "w" using {command down}
+        delay 0.5
+        
+        -- Close the inspect page tab too
+        keystroke "w" using {command down}
+        delay 0.5
+    end tell
+end tell
+
+-- Open the dashboard in Safari
+tell application "Safari"
+    delay 1
+    open location "http://localhost:3737"
+    activate
+end tell
+
+-- Minimize Terminal
+tell application "System Events"
+    tell process "Terminal"
+        try
+            keystroke "m" using {command down}
+        end try
+    end tell
+end tell
+EOF
+
+echo ""
+echo "════════════════════════════════════════════════════════"
+echo "✅ SMART SAVE V10.0.4 IS RUNNING!"
+echo "════════════════════════════════════════════════════════"
+echo ""
+echo "🟢 Server: Running on http://localhost:3737 (PID: $SERVER_PID)"
+echo "🟢 Menu Bar: SS icon in menu bar (PID: $MENUBAR_PID)"
+echo "🟢 Claude: Running (PID: $CLAUDE_PID)"
+echo "🟢 Smart Save: Injected and active"
+echo ""
+echo "📊 Dashboard: http://localhost:3737"
+echo ""
+echo "📌 Auto-Save is running in the background!"
+echo "⚠️  Keep this terminal open (minimized is OK)"
+echo ""
+echo "To stop everything: Press Ctrl+C here"
+echo ""
+
+# Save all PIDs to a master file for cleanup
+echo "$SERVER_PID" > "$PID_DIR/all.pids"
+echo "$MENUBAR_PID" >> "$PID_DIR/all.pids"
+echo "$CLAUDE_PID" >> "$PID_DIR/all.pids"
+
+# Cleanup handler - only kills our processes
+cleanup() {
+    echo ""
+    echo "Shutting down Smart Save processes..."
+    
+    # Kill only our tracked processes
+    if [ -f "$PID_DIR/all.pids" ]; then
+        while read pid; do
+            if kill -0 "$pid" 2>/dev/null; then
+                echo "   Stopping process $pid"
+                kill "$pid" 2>/dev/null
+            fi
+        done < "$PID_DIR/all.pids"
+        rm "$PID_DIR/all.pids"
+    fi
+    
+    # Clean up PID files
+    rm -f "$PID_DIR"/*.pid
+    
+    echo "✅ Smart Save stopped cleanly"
+    exit
+}
+
+trap cleanup INT
+
+# Keep running and monitor
+while true; do
+    sleep 30
+    
+    # Check if server is still running
+    if ! kill -0 $SERVER_PID 2>/dev/null; then
+        echo "⚠️  Server stopped, restarting..."
+        node claude-server-v5.js &
+        SERVER_PID=$!
+        echo "$SERVER_PID" > "$PID_DIR/server.pid"
+    fi
+    
+    # Check if menu bar is still running
+    if ! kill -0 $MENUBAR_PID 2>/dev/null; then
+        echo "⚠️  Menu bar stopped, restarting..."
+        python3 menubar.py &
+        MENUBAR_PID=$!
+        echo "$MENUBAR_PID" > "$PID_DIR/menubar.pid"
+    fi
+done

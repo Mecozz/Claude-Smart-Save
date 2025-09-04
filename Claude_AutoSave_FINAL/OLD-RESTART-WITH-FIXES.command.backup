@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# ============================================
+# RESTART SMART SAVE WITH ALL FIXES
+# ============================================
+
+echo "🔧 Restarting Smart Save with all fixes applied..."
+
+# Kill existing processes
+pkill -f "claude-server-v5.js"
+pkill -f "auto-memory-bridge.js"
+pkill -f "menubar.py"
+
+sleep 2
+
+echo "✅ Fixes Applied:"
+echo "  • Word count now only counts conversation content"
+echo "  • Input sanitization prevents security issues"
+echo "  • Memory cleanup prevents leaks (100 file cache limit)"
+echo "  • Packages updated to latest versions"
+echo "  • Removed unused exec imports"
+echo "  • Path always relative to project folder"
+echo "  • Added retry logic for failed operations"
+
+echo ""
+echo "📝 The updated word count will show accurate numbers after restart"
+echo "🔒 File names are now sanitized for security"
+echo "🧹 Memory will be cleaned every 30 minutes"
+echo ""
+
+# Restart using the main launcher
+cd "$(dirname "$0")"
+./START-WITH-MEMORY.command
