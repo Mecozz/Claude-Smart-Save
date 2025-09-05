@@ -12,7 +12,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const semver = require('semver');
-const { exec } = require('child_process').promises;
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
 const os = require('os');
 
 class SmartSaveInstaller {
