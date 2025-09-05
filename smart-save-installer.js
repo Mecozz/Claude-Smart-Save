@@ -2,7 +2,7 @@
 
 /**
  * Smart Save Professional Installer
- * Version 11.0 - Complete Setup Wizard with Update Management
+ * Version 11.1.0 - Complete Setup Wizard with Update Management
  */
 
 const inquirer = require('inquirer');
@@ -18,7 +18,7 @@ const os = require('os');
 
 class SmartSaveInstaller {
   constructor() {
-    this.currentVersion = '11.1.0-beta.1';
+    this.currentVersion = '11.1.0-beta.2';
     this.configPath = path.join(os.homedir(), '.smart-save-config.json');
     this.config = this.loadConfig();
     
@@ -30,7 +30,7 @@ class SmartSaveInstaller {
       backups: path.join(documentsPath, 'Claude_Backups')
     };
     
-    // Component definitions
+    // Component definitions - ONLY REAL, WORKING TOOLS
     this.requiredComponents = [
       {
         name: 'Smart Save Core',
@@ -47,68 +47,38 @@ class SmartSaveInstaller {
       }
     ];
     
+    // Updated with ONLY available tools
     this.optionalComponents = [
-      {
-        id: 'memory',
-        name: 'Memory Server',
-        description: '🧠 Knowledge graph - Remembers people, projects, and decisions from chats',
-        package: '@modelcontextprotocol/server-memory',
-        type: 'mcp',
-        recommended: true,
-        selected: true
-      },
-      {
-        id: 'github',
-        name: 'GitHub Integration',
-        description: '🐙 Manage repos, PRs, and issues directly in Claude',
-        package: '@modelcontextprotocol/server-github',
-        type: 'mcp',
-        recommended: true,
-        selected: true
-      },
       {
         id: 'desktop-commander',
         name: 'Desktop Commander',
-        description: '💻 Control your computer - run commands, edit files, search',
-        package: 'desktop-commander',
+        description: '💻 Full computer control - run commands, edit files, manage processes',
+        package: '@wonderwhy-er/desktop-commander',
         type: 'mcp',
         recommended: true,
-        selected: true
+        selected: true,
+        available: true,
+        configName: 'desktop-commander'
       },
       {
-        id: 'sqlite',
-        name: 'SQLite Database',
-        description: '🗄️ Query and manage SQLite databases',
-        package: '@modelcontextprotocol/server-sqlite',
+        id: 'mcp-inspector',
+        name: 'MCP Inspector',
+        description: '🔍 Visual testing tool for MCP servers',
+        package: '@modelcontextprotocol/inspector',
         type: 'mcp',
         recommended: false,
-        selected: false
-      },
-      {
-        id: 'puppeteer',
-        name: 'Puppeteer Browser',
-        description: '🌐 Automate web browsing and scraping',
-        package: '@modelcontextprotocol/server-puppeteer',
-        type: 'mcp',
-        recommended: false,
-        selected: false
-      },
-      {
-        id: 'reddit',
-        name: 'Reddit Integration',
-        description: '🗣️ Browse and analyze Reddit content',
-        package: '@modelcontextprotocol/server-reddit',
-        type: 'mcp',
-        recommended: false,
-        selected: false
+        selected: false,
+        available: true,
+        configName: 'inspector'
       },
       {
         id: 'update-notifier',
         name: 'Update Notifier',
-        description: '🔔 Get alerts when new versions are available',
+        description: '🔔 Get alerts when new Smart Save versions are available',
         type: 'feature',
         recommended: true,
-        selected: true
+        selected: true,
+        available: true
       },
       {
         id: 'menubar',
@@ -117,7 +87,42 @@ class SmartSaveInstaller {
         type: 'python',
         package: 'rumps requests',
         recommended: true,
-        selected: true
+        selected: true,
+        available: true
+      },
+      // Coming Soon - shown but not selectable
+      {
+        id: 'github',
+        name: 'GitHub Integration',
+        description: '🐙 [COMING SOON] Manage repos, PRs, and issues',
+        package: '@modelcontextprotocol/server-github',
+        type: 'mcp',
+        recommended: false,
+        selected: false,
+        available: false,
+        configName: 'github'
+      },
+      {
+        id: 'memory',
+        name: 'Memory Server',
+        description: '🧠 [COMING SOON] Knowledge graph for conversations',
+        package: '@modelcontextprotocol/server-memory',
+        type: 'mcp',
+        recommended: false,
+        selected: false,
+        available: false,
+        configName: 'memory'
+      },
+      {
+        id: 'sqlite',
+        name: 'SQLite Database',
+        description: '🗄️ [COMING SOON] Query and manage SQLite databases',
+        package: '@modelcontextprotocol/server-sqlite',
+        type: 'mcp',
+        recommended: false,
+        selected: false,
+        available: false,
+        configName: 'sqlite'
       }
     ];
   }
@@ -179,7 +184,7 @@ class SmartSaveInstaller {
 ╔════════════════════════════════════════════════════════╗
 ║                                                        ║
 ║     🚀 CLAUDE SMART SAVE - PROFESSIONAL INSTALLER     ║
-║                      Version 11.0                     ║
+║                      Version 11.1                     ║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
     `));
@@ -187,9 +192,12 @@ class SmartSaveInstaller {
     console.log(chalk.gray(`
 This installer will:
 ✓ Set up Smart Save with your preferred settings
-✓ Install optional MCP tools and integrations  
+✓ Install available MCP tools and integrations  
 ✓ Configure automatic update notifications
 ✓ Create a complete Claude power-user environment
+
+${chalk.yellow('Note: MCP (Model Context Protocol) is very new.')}
+${chalk.yellow('Many tools are still in development.')}
 
 Press Ctrl+C at any time to cancel
     `));
@@ -316,15 +324,28 @@ Press Ctrl+C at any time to cancel
       console.log(`  ✓ ${comp.name} - ${comp.description}`);
     });
     
-    console.log(chalk.yellow('\n\nOptional Components (customize your setup):'));
+    console.log(chalk.yellow('\n\nOptional Components:'));
     console.log(chalk.gray('Space to select/deselect, Enter to continue\n'));
     
-    const choices = this.optionalComponents.map(comp => ({
+    // Filter to only show available components for selection
+    const availableComponents = this.optionalComponents.filter(c => c.available);
+    const unavailableComponents = this.optionalComponents.filter(c => !c.available);
+    
+    const choices = availableComponents.map(comp => ({
       name: `${comp.name}${comp.recommended ? chalk.green(' [RECOMMENDED]') : ''}\n   ${chalk.gray(comp.description)}`,
       value: comp.id,
       checked: comp.selected,
       short: comp.name
     }));
+    
+    // Show coming soon items separately
+    if (unavailableComponents.length > 0) {
+      console.log(chalk.dim('\n📍 Coming Soon (not yet available):'));
+      unavailableComponents.forEach(comp => {
+        console.log(chalk.dim(`  ○ ${comp.name} - ${comp.description.replace('[COMING SOON] ', '')}`));
+      });
+      console.log('');
+    }
     
     const { selected } = await inquirer.prompt([
       {
@@ -332,7 +353,7 @@ Press Ctrl+C at any time to cancel
         name: 'selected',
         message: 'Select components to install:',
         choices: choices,
-        pageSize: 15
+        pageSize: 10
       }
     ]);
     
@@ -476,13 +497,29 @@ Press Ctrl+C at any time to cancel
       if (component.type === 'mcp' && component.package) {
         const compSpinner = ora(`Installing ${component.name}...`).start();
         try {
+          // Try global install first
           await exec(`npm install -g ${component.package}`);
+          compSpinner.succeed(`${component.name} installed successfully`);
+          this.config.installedComponents.push(component.id);
+        } catch (error) {
+          // If global fails, show instructions
+          compSpinner.warn(`${component.name} requires manual installation`);
+          console.log(chalk.yellow(`  Run: npm install -g ${component.package}`));
+          console.log(chalk.gray(`  Error: ${error.message.split('\n')[0]}`));
+        }
+      } else if (component.type === 'python' && component.package) {
+        const compSpinner = ora(`Installing ${component.name}...`).start();
+        try {
+          await exec(`pip3 install ${component.package}`);
           compSpinner.succeed(`${component.name} installed`);
           this.config.installedComponents.push(component.id);
         } catch (error) {
           compSpinner.warn(`${component.name} - manual installation needed`);
-          console.log(chalk.yellow(`  Run: npm install -g ${component.package}`));
+          console.log(chalk.yellow(`  Run: pip3 install ${component.package}`));
         }
+      } else if (component.type === 'feature') {
+        // Features don't need installation, just configuration
+        this.config.installedComponents.push(component.id);
       }
     }
     
@@ -490,7 +527,7 @@ Press Ctrl+C at any time to cancel
     await this.updateSmartSaveConfig();
     
     // Generate Claude Desktop config if MCP tools selected
-    const mcpComponents = components.filter(c => c.type === 'mcp');
+    const mcpComponents = components.filter(c => c.type === 'mcp' && c.available);
     if (mcpComponents.length > 0) {
       await this.generateClaudeConfig(mcpComponents);
     }
@@ -541,13 +578,25 @@ Press Ctrl+C at any time to cancel
     
     const mcpServers = existingConfig.mcpServers || {};
     
-    // Add our selected MCP servers
+    // Add our selected MCP servers with correct configuration
     mcpComponents.forEach(comp => {
-      const serverName = comp.id.replace('-', '_');
-      mcpServers[serverName] = {
-        command: 'npx',
-        args: [comp.package]
-      };
+      if (comp.configName && comp.package) {
+        // Special handling for Desktop Commander
+        if (comp.id === 'desktop-commander') {
+          mcpServers[comp.configName] = {
+            command: 'npx',
+            args: [comp.package],
+            env: {
+              PATH: '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+            }
+          };
+        } else {
+          mcpServers[comp.configName] = {
+            command: 'npx',
+            args: [comp.package]
+          };
+        }
+      }
     });
     
     const newConfig = {
@@ -574,8 +623,9 @@ Press Ctrl+C at any time to cancel
         console.log(chalk.green('✅ Claude Desktop configured'));
         console.log(chalk.yellow('Note: Restart Claude Desktop for changes to take effect'));
       } catch (error) {
-        console.log(chalk.red('Failed to update Claude config'));
-        console.log(chalk.yellow('Please add the above configuration manually'));
+        console.log(chalk.red('Failed to update Claude config automatically'));
+        console.log(chalk.yellow('Please add the above configuration manually to:'));
+        console.log(chalk.gray(claudeConfigPath));
       }
     }
   }
@@ -765,71 +815,11 @@ Press Ctrl+C at any time to cancel
       'check-updates.js'
     );
     
-    const updateChecker = `#!/usr/bin/env node
-
-/**
- * Smart Save Update Checker
- * Runs periodically to check for new versions
- */
-
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const notifier = require('node-notifier');
-
-const configPath = '${this.configPath}';
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
-async function checkForUpdates() {
-  try {
-    const response = await axios.get(
-      \`https://api.github.com/repos/\${config.githubRepo}/releases/latest\`,
-      { timeout: 5000 }
-    );
-    
-    const latestVersion = response.data.tag_name.replace('v', '');
-    
-    if (latestVersion > config.installedVersion) {
-      notifier.notify({
-        title: '🎉 Smart Save Update Available',
-        message: \`Version \${latestVersion} is now available!\\nCurrent: v\${config.installedVersion}\`,
-        sound: true,
-        wait: false
-      });
+    // Copy the update checker from source
+    const sourceChecker = path.join(__dirname, 'check-updates.js');
+    if (fs.existsSync(sourceChecker)) {
+      await fs.copy(sourceChecker, updateCheckerPath);
     }
-    
-    config.lastUpdateCheck = new Date().toISOString();
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    
-  } catch (error) {
-    // Silent fail
-  }
-}
-
-// Check based on interval setting
-const shouldCheck = () => {
-  if (config.updateCheckInterval === 'always') return true;
-  if (!config.lastUpdateCheck) return true;
-  
-  const lastCheck = new Date(config.lastUpdateCheck);
-  const now = new Date();
-  const hoursSince = (now - lastCheck) / (1000 * 60 * 60);
-  
-  switch (config.updateCheckInterval) {
-    case 'daily': return hoursSince >= 24;
-    case 'weekly': return hoursSince >= 168;
-    case 'monthly': return hoursSince >= 720;
-    default: return false;
-  }
-};
-
-if (config.checkForUpdates && shouldCheck()) {
-  checkForUpdates();
-}
-`;
-    
-    await fs.writeFile(updateCheckerPath, updateChecker);
-    await fs.chmod(updateCheckerPath, '755');
     
     // Update package.json to include update checking
     const packageJsonPath = path.join(this.config.installPath, 'package.json');
@@ -837,7 +827,7 @@ if (config.checkForUpdates && shouldCheck()) {
       const packageJson = await fs.readJson(packageJsonPath);
       packageJson.scripts = packageJson.scripts || {};
       packageJson.scripts['check-updates'] = 'node check-updates.js';
-      packageJson.scripts['prestart'] = 'node check-updates.js';
+      packageJson.scripts['prestart'] = 'node check-updates.js 2>/dev/null || true';
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
     }
   }
@@ -857,13 +847,19 @@ if (config.checkForUpdates && shouldCheck()) {
     console.log(`3. Open ${chalk.bold('Claude Desktop')} or ${chalk.bold('claude.ai')}`);
     console.log(`4. Smart Save will activate automatically!`);
     
-    if (this.config.installedComponents.includes('memory') || 
-        this.config.installedComponents.includes('github')) {
-      console.log(chalk.yellow('\n⚠️  Note: Restart Claude Desktop to activate MCP tools'));
+    const hasDesktopCommander = this.config.installedComponents.includes('desktop-commander');
+    if (hasDesktopCommander) {
+      console.log(chalk.yellow('\n⚠️  Note: Restart Claude Desktop to activate Desktop Commander'));
     }
     
     console.log(chalk.gray('\n📚 Documentation: https://github.com/Mecozz/Claude-Smart-Save'));
     console.log(chalk.gray('💬 Support: https://github.com/Mecozz/Claude-Smart-Save/issues'));
+    
+    // Show info about MCP ecosystem
+    console.log(chalk.blue('\n📍 About MCP Tools:'));
+    console.log(chalk.gray('The Model Context Protocol is very new.'));
+    console.log(chalk.gray('Many announced tools are still in development.'));
+    console.log(chalk.gray('Check back regularly for updates!'));
   }
 
   async updateComponents() {
@@ -877,10 +873,14 @@ if (config.checkForUpdates && shouldCheck()) {
     console.log(chalk.blue('\n📦 ADD/UPDATE COMPONENTS\n'));
     
     const installed = this.config.installedComponents || [];
-    const available = this.optionalComponents.filter(c => !installed.includes(c.id));
+    const available = this.optionalComponents.filter(c => c.available && !installed.includes(c.id));
     
     if (available.length === 0) {
-      console.log(chalk.yellow('All components are already installed!'));
+      console.log(chalk.yellow('All available components are already installed!'));
+      console.log(chalk.gray('\nSeveral MCP tools are still in development:'));
+      console.log(chalk.gray('  • GitHub Integration'));
+      console.log(chalk.gray('  • Memory Server'));
+      console.log(chalk.gray('  • SQLite Database'));
       return;
     }
     
@@ -918,6 +918,7 @@ if (config.checkForUpdates && shouldCheck()) {
           { name: '📁 Change installation paths', value: 'paths' },
           { name: '🔄 Update preferences', value: 'updates' },
           { name: '🔍 Check for updates now', value: 'check' },
+          { name: '💻 Reinstall Desktop Commander', value: 'desktop' },
           { name: '↩️  Back', value: 'back' }
         ]
       }
@@ -939,6 +940,17 @@ if (config.checkForUpdates && shouldCheck()) {
           }
         } else {
           console.log(chalk.green('✅ You have the latest version!'));
+        }
+        break;
+      case 'desktop':
+        console.log(chalk.blue('\n💻 Installing Desktop Commander...\n'));
+        try {
+          await exec('npm install -g @wonderwhy-er/desktop-commander');
+          console.log(chalk.green('✅ Desktop Commander installed successfully!'));
+          console.log(chalk.yellow('Restart Claude Desktop to activate it.'));
+        } catch (error) {
+          console.log(chalk.red('Installation failed. Try manually:'));
+          console.log(chalk.yellow('npm install -g @wonderwhy-er/desktop-commander'));
         }
         break;
     }
