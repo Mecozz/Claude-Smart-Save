@@ -4,7 +4,7 @@
   "description": "Professional auto-save system for Claude with intelligent installation and update management",
   "main": "Claude_AutoSave_FINAL/claude-server-v5.js",
   "scripts": {
-    "setup": "node smart-save-installer.js",
+    "setup": "npm install && node smart-save-installer.js",
     "start": "node check-updates.js 2>/dev/null; node Claude_AutoSave_FINAL/claude-server-v5.js",
     "installer": "node smart-save-installer.js",
     "update": "node smart-save-installer.js --check-update",

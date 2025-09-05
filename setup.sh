@@ -33,11 +33,20 @@ echo ""
 
 # Install npm dependencies if needed
 if [ ! -d "node_modules" ]; then
-    echo "📦 Installing dependencies..."
+    echo "📦 Installing dependencies (this may take a minute)..."
     npm install
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to install dependencies"
+        echo "   Please run: npm install"
+        exit 1
+    fi
+    echo "✅ Dependencies installed successfully"
     echo ""
 else
     echo "✅ Dependencies already installed"
+    # Make sure all dependencies are up to date
+    echo "📦 Checking for dependency updates..."
+    npm install
     echo ""
 fi
 

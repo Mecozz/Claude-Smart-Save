@@ -7,10 +7,12 @@
 git clone https://github.com/Mecozz/Claude-Smart-Save.git
 cd Claude-Smart-Save
 
-# 2. Run the setup wizard
-./setup.sh
-# OR
+# 2. Run the setup wizard (installs dependencies automatically)
 npm run setup
+
+# OR if you prefer manual steps:
+npm install    # Install dependencies first
+npm run installer  # Then run the installer
 ```
 
 That's it! The installer will guide you through everything.
