@@ -18,7 +18,7 @@ const os = require('os');
 
 class SmartSaveInstaller {
   constructor() {
-    this.currentVersion = '11.1.0-rc.1';
+    this.currentVersion = '11.1.0';
     this.configPath = path.join(os.homedir(), '.smart-save-config.json');
     this.config = this.loadConfig();
     
@@ -163,13 +163,19 @@ class SmartSaveInstaller {
       return; // Exit if no Claude and user doesn't want to continue
     }
     
-    // Check for updates first
-    const updateAvailable = await this.checkForUpdates();
-    if (updateAvailable) {
-      const shouldUpdate = await this.promptForUpdate(updateAvailable);
-      if (shouldUpdate === 'download') {
-        await this.downloadUpdate(updateAvailable);
-        return;
+    // Check for --no-update flag
+    const skipUpdate = process.argv.includes('--no-update') || 
+                       process.argv.includes('--skip-update');
+    
+    // Only check for updates if not skipped
+    if (!skipUpdate && !this.isRunningFromExtractedVersion()) {
+      const updateAvailable = await this.checkForUpdates();
+      if (updateAvailable) {
+        const shouldUpdate = await this.promptForUpdate(updateAvailable);
+        if (shouldUpdate === 'download') {
+          await this.downloadUpdate(updateAvailable);
+          return;
+        }
       }
     }
     
@@ -183,6 +189,17 @@ class SmartSaveInstaller {
     } else if (action === 'configure') {
       await this.reconfigure();
     }
+  }
+
+  isRunningFromExtractedVersion() {
+    // Check if we're running from a downloaded/extracted version
+    const cwd = process.cwd();
+    // If path contains version number or Downloads, skip update check
+    return cwd.includes('rc.') || 
+           cwd.includes('beta.') || 
+           cwd.includes('Downloads') ||
+           cwd.includes('-v') ||
+           cwd.includes('11.1.0');
   }
 
   async checkClaudeInstallation() {
@@ -871,7 +888,8 @@ Press Ctrl+C at any time to cancel
 
   async downloadUpdate(updateInfo) {
     const newVersion = updateInfo.version;
-    const newPath = `${this.config.installPath}-v${newVersion}`;
+    const basePath = this.config.installPath || path.join(os.homedir(), 'Documents', 'Claude-Smart-Save');
+    const newPath = `${basePath}-v${newVersion}`;
     
     console.log(chalk.blue(`\n📥 Downloading Smart Save v${newVersion}...\n`));
     console.log(chalk.gray(`New installation path: ${newPath}`));
@@ -879,23 +897,45 @@ Press Ctrl+C at any time to cancel
     const spinner = ora('Downloading from GitHub...').start();
     
     try {
+      // Check if target already exists
+      if (fs.existsSync(newPath)) {
+        spinner.warn('Target directory already exists');
+        const { overwrite } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'overwrite',
+            message: 'Directory exists. Remove and re-download?',
+            default: false
+          }
+        ]);
+        
+        if (overwrite) {
+          await fs.remove(newPath);
+        } else {
+          spinner.fail('Update cancelled');
+          return;
+        }
+      }
+      
       // Clone the latest version
       await exec(`git clone https://github.com/${this.config.githubRepo}.git "${newPath}"`);
       
       spinner.succeed('Update downloaded successfully');
       
       // Offer to migrate data
-      const { migrate } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'migrate',
-          message: 'Copy your conversations and settings to the new version?',
-          default: true
+      if (this.config.installPath && fs.existsSync(this.config.installPath)) {
+        const { migrate } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'migrate',
+            message: 'Copy your conversations and settings to the new version?',
+            default: true
+          }
+        ]);
+        
+        if (migrate) {
+          await this.migrateData(this.config.installPath, newPath);
         }
-      ]);
-      
-      if (migrate) {
-        await this.migrateData(this.config.installPath, newPath);
       }
       
       console.log(chalk.green.bold('\n✅ Update Complete!\n'));
@@ -911,7 +951,7 @@ Press Ctrl+C at any time to cancel
       
     } catch (error) {
       spinner.fail('Failed to download update');
-      console.error(error);
+      console.error(error.message);
     }
   }
 

@@ -1,19 +1,20 @@
 {
   "name": "claude-smart-save",
-  "version": "11.1.0-rc.1",
+  "version": "11.1.0",
   "description": "Professional auto-save system for Claude with intelligent installation and update management",
   "main": "Claude_AutoSave_FINAL/claude-server-v5.js",
   "scripts": {
-    "setup": "npm install && node smart-save-installer.js",
+    "setup": "node quick-setup.js",
+    "setup-advanced": "node smart-save-installer.js --no-update",
     "start": "node start-with-security.js",
     "start-basic": "node Claude_AutoSave_FINAL/claude-server-v5.js",
     "inject": "./inject-smart-save.sh",
     "permissions": "./setup-permissions.sh",
-    "installer": "node smart-save-installer.js",
     "update": "node smart-save-installer.js --check-update",
     "check-updates": "node check-updates.js",
     "test": "node diagnostic.js",
-    "clean": "rm -rf node_modules && npm install"
+    "clean": "rm -rf node_modules && npm install",
+    "reset": "rm -rf Claude_AutoSave_FINAL/config.json Conversations Backups logs && npm run setup"
   },
   "keywords": [
     "claude",
