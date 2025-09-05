@@ -18,7 +18,7 @@ const os = require('os');
 
 class SmartSaveInstaller {
   constructor() {
-    this.currentVersion = '11.1.0-beta.2';
+    this.currentVersion = '11.1.0-beta.3';
     this.configPath = path.join(os.homedir(), '.smart-save-config.json');
     this.config = this.loadConfig();
     
@@ -157,6 +157,12 @@ class SmartSaveInstaller {
     console.clear();
     await this.showWelcome();
     
+    // Check for Claude installation
+    const claudeCheck = await this.checkClaudeInstallation();
+    if (!claudeCheck.hasClaudeDesktop && !claudeCheck.willUseWeb) {
+      return; // Exit if no Claude and user doesn't want to continue
+    }
+    
     // Check for updates first
     const updateAvailable = await this.checkForUpdates();
     if (updateAvailable) {
@@ -179,6 +185,119 @@ class SmartSaveInstaller {
     }
   }
 
+  async checkClaudeInstallation() {
+    const claudeAppPaths = [
+      '/Applications/Claude.app',
+      path.join(os.homedir(), 'Applications', 'Claude.app'),
+      '/System/Applications/Claude.app'
+    ];
+    
+    const claudeConfigPath = path.join(
+      os.homedir(),
+      'Library',
+      'Application Support',
+      'Claude'
+    );
+    
+    let hasClaudeDesktop = false;
+    let claudeLocation = null;
+    
+    // Check if Claude.app exists
+    for (const appPath of claudeAppPaths) {
+      if (fs.existsSync(appPath)) {
+        hasClaudeDesktop = true;
+        claudeLocation = appPath;
+        break;
+      }
+    }
+    
+    // Check if config directory exists (might have been installed before)
+    const hasClaudeConfig = fs.existsSync(claudeConfigPath);
+    
+    if (hasClaudeDesktop) {
+      console.log(chalk.green('✅ Claude Desktop detected at: ' + claudeLocation));
+      return { hasClaudeDesktop: true, willUseWeb: false };
+    } else if (hasClaudeConfig) {
+      console.log(chalk.yellow('⚠️  Claude configuration found but app not installed'));
+      console.log(chalk.gray('   You may have uninstalled Claude Desktop'));
+    } else {
+      console.log(chalk.yellow('⚠️  Claude Desktop not detected'));
+    }
+    
+    // Ask what they want to do
+    console.log('');
+    const { claudeChoice } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'claudeChoice',
+        message: 'Claude Desktop is not installed. What would you like to do?',
+        choices: [
+          {
+            name: '🌐 I\'ll use claude.ai (web version) instead',
+            value: 'web'
+          },
+          {
+            name: '💻 Install Claude Desktop first (opens download page)',
+            value: 'download'
+          },
+          {
+            name: '📁 Claude is installed in a custom location',
+            value: 'custom'
+          },
+          {
+            name: '❌ Exit installer',
+            value: 'exit'
+          }
+        ]
+      }
+    ]);
+    
+    switch (claudeChoice) {
+      case 'web':
+        console.log(chalk.blue('\n📝 Note: Using claude.ai (web version)'));
+        console.log(chalk.gray('• Smart Save will work with the Chrome extension'));
+        console.log(chalk.gray('• MCP tools (like Desktop Commander) require Claude Desktop'));
+        console.log('');
+        
+        // Filter out MCP components since they won't work
+        this.optionalComponents = this.optionalComponents.filter(
+          c => c.type !== 'mcp' || !c.available
+        );
+        
+        return { hasClaudeDesktop: false, willUseWeb: true };
+        
+      case 'download':
+        console.log(chalk.blue('\nOpening Claude Desktop download page...'));
+        await exec('open https://claude.ai/download');
+        console.log(chalk.yellow('\n👉 Please install Claude Desktop and then run this installer again:'));
+        console.log(chalk.cyan('   npm run setup'));
+        return { hasClaudeDesktop: false, willUseWeb: false };
+        
+      case 'custom':
+        const { customPath } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'customPath',
+            message: 'Enter the full path to Claude.app:',
+            validate: (input) => {
+              if (fs.existsSync(input) && input.endsWith('.app')) {
+                return true;
+              }
+              return 'Please enter a valid path to Claude.app';
+            }
+          }
+        ]);
+        
+        console.log(chalk.green('✅ Claude Desktop found at custom location'));
+        return { hasClaudeDesktop: true, willUseWeb: false };
+        
+      case 'exit':
+      default:
+        console.log(chalk.gray('Installer exited.'));
+        return { hasClaudeDesktop: false, willUseWeb: false };
+    }
+  }
+
   async showWelcome() {
     console.log(chalk.blue.bold(`
 ╔════════════════════════════════════════════════════════╗
@@ -189,15 +308,20 @@ class SmartSaveInstaller {
 ╚════════════════════════════════════════════════════════╝
     `));
     
+    console.log(chalk.cyan('Requirements:'));
+    console.log('  • Node.js 14+ ' + chalk.green('✓ Installed'));
+    console.log('  • Claude Desktop or claude.ai ' + chalk.gray('(checking...)'));
+    console.log('');
+    
     console.log(chalk.gray(`
 This installer will:
 ✓ Set up Smart Save with your preferred settings
-✓ Install available MCP tools and integrations  
+✓ Install available MCP tools (Claude Desktop only)  
 ✓ Configure automatic update notifications
 ✓ Create a complete Claude power-user environment
 
-${chalk.yellow('Note: MCP (Model Context Protocol) is very new.')}
-${chalk.yellow('Many tools are still in development.')}
+${chalk.yellow('Note: MCP tools require Claude Desktop.')}
+${chalk.yellow('Web users (claude.ai) can use Smart Save core features.')}
 
 Press Ctrl+C at any time to cancel
     `));
@@ -844,22 +968,40 @@ Press Ctrl+C at any time to cancel
     console.log(chalk.cyan('\n📌 NEXT STEPS:\n'));
     console.log(`1. ${chalk.bold('cd "' + this.config.installPath + '"')}`);
     console.log(`2. ${chalk.bold('npm start')} - Start Smart Save server`);
-    console.log(`3. Open ${chalk.bold('Claude Desktop')} or ${chalk.bold('claude.ai')}`);
-    console.log(`4. Smart Save will activate automatically!`);
     
-    const hasDesktopCommander = this.config.installedComponents.includes('desktop-commander');
-    if (hasDesktopCommander) {
-      console.log(chalk.yellow('\n⚠️  Note: Restart Claude Desktop to activate Desktop Commander'));
+    // Check if Claude Desktop is installed for specific instructions
+    const claudeDesktopExists = fs.existsSync('/Applications/Claude.app') || 
+                                fs.existsSync(path.join(os.homedir(), 'Applications', 'Claude.app'));
+    
+    if (claudeDesktopExists) {
+      console.log(`3. Open ${chalk.bold('Claude Desktop')}`);
+      console.log(`4. Smart Save will activate automatically!`);
+      
+      const hasDesktopCommander = this.config.installedComponents.includes('desktop-commander');
+      if (hasDesktopCommander) {
+        console.log(chalk.yellow('\n⚠️  Note: Restart Claude Desktop to activate Desktop Commander'));
+      }
+    } else {
+      console.log(`3. Open ${chalk.bold('Google Chrome')}`);
+      console.log(`4. Go to ${chalk.bold('claude.ai')}`);
+      console.log(`5. Smart Save will activate via the Chrome extension!`);
+      
+      console.log(chalk.yellow('\n📝 Chrome Extension Setup:'));
+      console.log('   1. Open Chrome → Extensions → Manage Extensions');
+      console.log('   2. Enable "Developer mode"');
+      console.log('   3. Click "Load unpacked"');
+      console.log(`   4. Select: ${this.config.installPath}/chrome-extension`);
     }
     
     console.log(chalk.gray('\n📚 Documentation: https://github.com/Mecozz/Claude-Smart-Save'));
     console.log(chalk.gray('💬 Support: https://github.com/Mecozz/Claude-Smart-Save/issues'));
     
-    // Show info about MCP ecosystem
-    console.log(chalk.blue('\n📍 About MCP Tools:'));
-    console.log(chalk.gray('The Model Context Protocol is very new.'));
-    console.log(chalk.gray('Many announced tools are still in development.'));
-    console.log(chalk.gray('Check back regularly for updates!'));
+    // Show info about what mode they're in
+    if (!claudeDesktopExists) {
+      console.log(chalk.blue('\n📍 Web Mode:'));
+      console.log(chalk.gray('You\'re using Smart Save with claude.ai (web version).'));
+      console.log(chalk.gray('To use MCP tools like Desktop Commander, install Claude Desktop.'));
+    }
   }
 
   async updateComponents() {
