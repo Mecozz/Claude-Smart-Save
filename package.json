@@ -7,6 +7,7 @@
     "setup": "npm install && node smart-save-installer.js",
     "start": "node start-with-security.js",
     "start-basic": "node Claude_AutoSave_FINAL/claude-server-v5.js",
+    "inject": "./inject-smart-save.sh",
     "permissions": "./setup-permissions.sh",
     "installer": "node smart-save-installer.js",
     "update": "node smart-save-installer.js --check-update",

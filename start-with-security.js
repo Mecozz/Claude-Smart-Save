@@ -126,29 +126,29 @@ function checkInjectionStatus() {
 
 function showManualInjectionInstructions() {
   console.log(chalk.red.bold('📝 Manual Injection Required:\n'));
-  console.log('It seems the auto-injection didn\'t work. This usually means:');
+  console.log('The auto-injection didn\'t work. This is usually because:');
+  console.log('  • ' + chalk.yellow('Developer Tools opened to Elements tab (not Console)'));
   console.log('  • Security permissions were denied');
-  console.log('  • Claude Desktop isn\'t open');
-  console.log('  • Developer Tools aren\'t open\n');
+  console.log('  • Claude Desktop isn\'t open\n');
   
-  console.log(chalk.cyan('To fix:'));
-  console.log('1. ' + chalk.bold('Grant permissions:'));
-  console.log('   System Preferences > Security & Privacy > Privacy');
-  console.log('   • Accessibility: Add Terminal/iTerm');
-  console.log('   • Screen Recording: Add Terminal (if asked)');
+  console.log(chalk.cyan.bold('SOLUTION:\n'));
+  console.log('1. ' + chalk.bold('In Claude Desktop Developer Tools:'));
+  console.log('   • Click the ' + chalk.yellow.bold('"Console"') + ' tab (NOT Elements!)');
+  console.log('   • The tabs look like: [Elements] [' + chalk.yellow.bold('Console') + '] [Sources] [Network]');
   console.log('');
-  console.log('2. ' + chalk.bold('Restart everything:'));
-  console.log('   • Close Claude Desktop');
-  console.log('   • Stop this script (Ctrl+C)');
-  console.log('   • Run: npm start');
-  console.log('   • Open Claude Desktop');
-  console.log('   • Open Developer Tools (Cmd+Option+I)');
+  console.log('2. ' + chalk.bold('Click in the console input area:'));
+  console.log('   • It\'s at the bottom, after the ' + chalk.cyan('>') + ' prompt');
+  console.log('   • NOT in the middle where the logs are');
   console.log('');
-  console.log('3. ' + chalk.bold('Or try manual injection:'));
-  console.log('   In Claude\'s Developer Console, paste:');
-  console.log(chalk.gray('   fetch("http://localhost:3737/inject-script")'));
-  console.log(chalk.gray('     .then(r => r.text())'));
-  console.log(chalk.gray('     .then(eval);\n'));
+  console.log('3. ' + chalk.bold('Paste this command:'));
+  console.log(chalk.green('   fetch("http://localhost:3737/inject-script").then(r => r.text()).then(eval);'));
+  console.log('');
+  console.log('4. ' + chalk.bold('Press Enter'));
+  console.log('');
+  console.log(chalk.yellow('Alternative: Run our injection helper:'));
+  console.log('   ' + chalk.cyan('./inject-smart-save.sh'));
+  console.log('');
+  console.log('The Smart Save indicator should appear immediately after injection.');
 }
 
 function showTroubleshooting() {
