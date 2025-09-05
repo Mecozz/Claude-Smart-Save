@@ -1007,15 +1007,30 @@ Press Ctrl+C at any time to cancel
     
     console.log(chalk.cyan('\n📌 NEXT STEPS:\n'));
     console.log(`1. ${chalk.bold('cd "' + this.config.installPath + '"')}`);
-    console.log(`2. ${chalk.bold('npm start')} - Start Smart Save server`);
     
     // Check if Claude Desktop is installed for specific instructions
     const claudeDesktopExists = fs.existsSync('/Applications/Claude.app') || 
                                 fs.existsSync(path.join(os.homedir(), 'Applications', 'Claude.app'));
     
+    // macOS security warning
+    if (process.platform === 'darwin') {
+      console.log(chalk.yellow('\n⚠️  FIRST TIME SETUP (macOS):\n'));
+      console.log('2. ' + chalk.bold('npm run permissions') + ' - Check/fix security settings');
+      console.log('3. ' + chalk.bold('npm start') + ' - Start Smart Save');
+      console.log('');
+      console.log(chalk.yellow('You may see security prompts for:'));
+      console.log('  • Terminal/iTerm (Accessibility)');
+      console.log('  • Node.js (Incoming connections)');
+      console.log('  • Screen Recording (if needed)');
+      console.log(chalk.cyan('\n👉 Click "Allow" for all prompts!\n'));
+    } else {
+      console.log(`2. ${chalk.bold('npm start')} - Start Smart Save server`);
+    }
+    
     if (claudeDesktopExists) {
-      console.log(`3. Open ${chalk.bold('Claude Desktop')}`);
-      console.log(`4. Smart Save will activate automatically!`);
+      console.log(`4. Open ${chalk.bold('Claude Desktop')}`);
+      console.log(`5. Open Developer Tools (${chalk.bold('Cmd+Option+I')})`);
+      console.log(`6. Smart Save will auto-inject!`);
       
       const hasDesktopCommander = this.config.installedComponents.includes('desktop-commander');
       if (hasDesktopCommander) {
@@ -1035,6 +1050,12 @@ Press Ctrl+C at any time to cancel
     
     console.log(chalk.gray('\n📚 Documentation: https://github.com/Mecozz/Claude-Smart-Save'));
     console.log(chalk.gray('💬 Support: https://github.com/Mecozz/Claude-Smart-Save/issues'));
+    
+    // Troubleshooting info
+    console.log(chalk.blue('\n🔧 Troubleshooting Commands:'));
+    console.log('  npm run permissions  - Check/fix macOS permissions');
+    console.log('  npm run start-basic  - Start without security checks');
+    console.log('  npm run update      - Check for updates');
     
     // Show info about what mode they're in
     if (!claudeDesktopExists) {

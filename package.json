@@ -5,7 +5,9 @@
   "main": "Claude_AutoSave_FINAL/claude-server-v5.js",
   "scripts": {
     "setup": "npm install && node smart-save-installer.js",
-    "start": "node check-updates.js 2>/dev/null; node Claude_AutoSave_FINAL/claude-server-v5.js",
+    "start": "node start-with-security.js",
+    "start-basic": "node Claude_AutoSave_FINAL/claude-server-v5.js",
+    "permissions": "./setup-permissions.sh",
     "installer": "node smart-save-installer.js",
     "update": "node smart-save-installer.js --check-update",
     "check-updates": "node check-updates.js",
