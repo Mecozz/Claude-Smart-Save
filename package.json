@@ -1,12 +1,14 @@
 {
-  "name": "smart-save-claude",
-  "version": "11.0.0",
-  "description": "Intelligent auto-save system for Claude Desktop App and claude.ai that continuously saves conversations with project organization",
-  "main": "claude-server-v5.js",
+  "name": "claude-smart-save",
+  "version": "11.1.0-beta.1",
+  "description": "Professional auto-save system for Claude with intelligent installation and update management",
+  "main": "Claude_AutoSave_FINAL/claude-server-v5.js",
   "scripts": {
-    "start": "node Claude_AutoSave_FINAL/claude-server-v5.js",
-    "install-deps": "npm install",
-    "setup": "npm install && echo 'Setup complete! Run npm start to begin.'",
+    "setup": "node smart-save-installer.js",
+    "start": "node check-updates.js 2>/dev/null; node Claude_AutoSave_FINAL/claude-server-v5.js",
+    "installer": "node smart-save-installer.js",
+    "update": "node smart-save-installer.js --check-update",
+    "check-updates": "node check-updates.js",
     "test": "node diagnostic.js",
     "clean": "rm -rf node_modules && npm install"
   },
@@ -16,16 +18,24 @@
     "ai",
     "conversation",
     "backup",
-    "anthropic"
+    "anthropic",
+    "mcp",
+    "smart-save"
   ],
-  "author": "Smart Save Team",
+  "author": "Mecozz",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "body-parser": "^1.20.2",
     "fs-extra": "^11.1.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "inquirer": "^8.2.5",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "axios": "^1.4.0",
+    "semver": "^7.5.4",
+    "node-notifier": "^10.0.1"
   },
   "devDependencies": {},
   "engines": {
@@ -33,10 +43,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/smart-save-claude.git"
+    "url": "https://github.com/Mecozz/Claude-Smart-Save.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/smart-save-claude/issues"
+    "url": "https://github.com/Mecozz/Claude-Smart-Save/issues"
   },
-  "homepage": "https://github.com/yourusername/smart-save-claude#readme"
+  "homepage": "https://github.com/Mecozz/Claude-Smart-Save#readme"
 }
