@@ -18,7 +18,7 @@ const os = require('os');
 
 class SmartSaveInstaller {
   constructor() {
-    this.currentVersion = '11.1.0-beta.3';
+    this.currentVersion = '11.1.0-rc.1';
     this.configPath = path.join(os.homedir(), '.smart-save-config.json');
     this.config = this.loadConfig();
     

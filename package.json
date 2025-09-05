@@ -1,6 +1,6 @@
 {
   "name": "claude-smart-save",
-  "version": "11.1.0-beta.3",
+  "version": "11.1.0-rc.1",
   "description": "Professional auto-save system for Claude with intelligent installation and update management",
   "main": "Claude_AutoSave_FINAL/claude-server-v5.js",
   "scripts": {
