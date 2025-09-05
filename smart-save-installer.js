@@ -22,12 +22,12 @@ class SmartSaveInstaller {
     this.configPath = path.join(os.homedir(), '.smart-save-config.json');
     this.config = this.loadConfig();
     
-    // Default paths based on OS
+    // Default paths based on OS - EVERYTHING IN ONE MAIN FOLDER
     const documentsPath = path.join(os.homedir(), 'Documents');
     this.defaultPaths = {
       installation: path.join(documentsPath, 'Claude-Smart-Save'),
-      conversations: path.join(documentsPath, 'Claude_Conversations'),
-      backups: path.join(documentsPath, 'Claude_Backups')
+      conversations: path.join(documentsPath, 'Claude-Smart-Save', 'Conversations'),
+      backups: path.join(documentsPath, 'Claude-Smart-Save', 'Backups')
     };
     
     // Component definitions - ONLY REAL, WORKING TOOLS
@@ -374,23 +374,39 @@ Press Ctrl+C at any time to cancel
 
   async configurePaths() {
     console.log(chalk.yellow.bold('\n📁 INSTALLATION PATHS\n'));
-    console.log(chalk.gray('Default paths will be created in your Documents folder.\n'));
+    console.log(chalk.gray('Default: Everything goes in ONE folder in Documents\n'));
+    console.log(chalk.cyan('Default structure:'));
+    console.log('  📁 Documents/Claude-Smart-Save/');
+    console.log('     ├── 📂 Claude_AutoSave_FINAL/  (core files)');
+    console.log('     ├── 📂 chrome-extension/       (browser extension)');
+    console.log('     ├── 📂 Conversations/          (saved chats)');
+    console.log('     │   ├── Projects/');
+    console.log('     │   ├── Daily/');
+    console.log('     │   └── Archived/');
+    console.log('     ├── 📂 Backups/                (backups)');
+    console.log('     └── 📂 logs/                   (system logs)');
+    console.log('');
     
     const { customizePaths } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'customizePaths',
-        message: 'Would you like to customize the installation paths?',
-        default: false
+        message: 'Use default location? (Recommended)',
+        default: true
       }
     ]);
     
-    if (customizePaths) {
+    if (!customizePaths) {
+      // Use defaults (notice the logic is reversed - true means use defaults)
+      Object.assign(this.config, this.defaultPaths);
+    } else {
+      // Custom paths
+      console.log(chalk.yellow('\nCustom Installation:'));
       const paths = await inquirer.prompt([
         {
           type: 'input',
           name: 'installPath',
-          message: 'Installation directory:',
+          message: 'Main installation directory:',
           default: this.defaultPaths.installation,
           validate: (input) => {
             if (!path.isAbsolute(input)) {
@@ -400,39 +416,56 @@ Press Ctrl+C at any time to cancel
           }
         },
         {
-          type: 'input',
-          name: 'conversationsPath',
-          message: 'Conversations save directory:',
-          default: this.defaultPaths.conversations,
-          validate: (input) => {
-            if (!path.isAbsolute(input)) {
-              return 'Please enter an absolute path (starting with /)';
-            }
-            return true;
-          }
-        },
-        {
-          type: 'input',
-          name: 'backupsPath',
-          message: 'Backups directory:',
-          default: this.defaultPaths.backups,
-          validate: (input) => {
-            if (!path.isAbsolute(input)) {
-              return 'Please enter an absolute path (starting with /)';
-            }
-            return true;
-          }
+          type: 'confirm',
+          name: 'useSubfolders',
+          message: 'Keep conversations and backups as subfolders?',
+          default: true
         }
       ]);
       
-      Object.assign(this.config, paths);
-    } else {
-      Object.assign(this.config, this.defaultPaths);
+      if (paths.useSubfolders) {
+        // Keep everything organized in subfolders
+        this.config.installPath = paths.installPath;
+        this.config.conversationsPath = path.join(paths.installPath, 'Conversations');
+        this.config.backupsPath = path.join(paths.installPath, 'Backups');
+      } else {
+        // Allow full customization
+        const customPaths = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'conversationsPath',
+            message: 'Conversations directory:',
+            default: path.join(paths.installPath, 'Conversations'),
+            validate: (input) => {
+              if (!path.isAbsolute(input)) {
+                return 'Please enter an absolute path (starting with /)';
+              }
+              return true;
+            }
+          },
+          {
+            type: 'input',
+            name: 'backupsPath',
+            message: 'Backups directory:',
+            default: path.join(paths.installPath, 'Backups'),
+            validate: (input) => {
+              if (!path.isAbsolute(input)) {
+                return 'Please enter an absolute path (starting with /)';
+              }
+              return true;
+            }
+          }
+        ]);
+        
+        this.config.installPath = paths.installPath;
+        this.config.conversationsPath = customPaths.conversationsPath;
+        this.config.backupsPath = customPaths.backupsPath;
+      }
     }
     
     // Show selected paths
-    console.log(chalk.green('\n✅ Selected paths:'));
-    console.log(`   Installation: ${this.config.installPath}`);
+    console.log(chalk.green('\n✅ Installation will use:'));
+    console.log(`   Main folder: ${this.config.installPath}`);
     console.log(`   Conversations: ${this.config.conversationsPath}`);
     console.log(`   Backups: ${this.config.backupsPath}`);
     
@@ -561,26 +594,32 @@ Press Ctrl+C at any time to cancel
   async install(components) {
     console.log(chalk.blue.bold('\n🔧 INSTALLING COMPONENTS\n'));
     
-    // Create directories
-    const spinner = ora('Creating directories...').start();
+    // Create main directory and all subdirectories
+    const spinner = ora('Creating directory structure...').start();
     try {
+      // Main installation directory
       await fs.ensureDir(this.config.installPath);
+      
+      // Subdirectories for organization
       await fs.ensureDir(this.config.conversationsPath);
       await fs.ensureDir(this.config.backupsPath);
       
-      // Create project structure in conversations
+      // Conversation organization folders
       await fs.ensureDir(path.join(this.config.conversationsPath, 'Projects'));
       await fs.ensureDir(path.join(this.config.conversationsPath, 'Daily'));
       await fs.ensureDir(path.join(this.config.conversationsPath, 'Archived'));
       
-      spinner.succeed('Directories created');
+      // Logs directory
+      await fs.ensureDir(path.join(this.config.installPath, 'logs'));
+      
+      spinner.succeed('Directory structure created');
     } catch (error) {
       spinner.fail('Failed to create directories');
       console.error(error);
       return;
     }
     
-    // Copy Smart Save files
+    // Copy Smart Save files TO THE INSTALLATION DIRECTORY
     const copySpinner = ora('Copying Smart Save files...').start();
     try {
       const sourceDir = __dirname;
@@ -588,7 +627,8 @@ Press Ctrl+C at any time to cancel
         'Claude_AutoSave_FINAL',
         'chrome-extension',
         'package.json',
-        'README.md'
+        'README.md',
+        'check-updates.js'
       ];
       
       for (const file of filesToCopy) {
